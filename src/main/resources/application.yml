@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    include: local
+
+  messages:
+    basename: i18n/exception
+    encoding: UTF-8
+
+springdoc:
+  packages-to-scan: com.june.swu
+  swagger-ui:
+    path: swu-ui.html
