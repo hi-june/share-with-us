@@ -21,8 +21,20 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// swagger3 (springdoc)
+	implementation 'org.springdoc:springdoc-openapi-ui:1.6.15'
+
+	// 메시지 다국화 i18n 의존성 추가
+	implementation 'net.rakugakibox.util:yaml-resource-bundle:1.1'
+
+	// postgresql
+	runtimeOnly 'org.postgresql:postgresql:42.5.4'
+
+	// lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
