@@ -1,6 +1,6 @@
 spring:
   profiles:
-    include: local
+    include: local, private
 
   messages:
     basename: i18n/exception
@@ -8,5 +8,3 @@ spring:
 
 springdoc:
   packages-to-scan: com.june.swu
-  swagger-ui:
-    path: swu-ui.html
