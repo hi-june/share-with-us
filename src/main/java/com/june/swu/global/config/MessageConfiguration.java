@@ -1,4 +1,4 @@
-package com.june.swu.global.configuration;
+package com.june.swu.global.config;
 
 import net.rakugakibox.util.YamlResourceBundle;
 import org.springframework.beans.factory.annotation.Value;
