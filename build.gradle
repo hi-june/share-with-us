@@ -28,6 +28,10 @@ dependencies {
 	// 메시지 다국화 i18n 의존성 추가
 	implementation 'net.rakugakibox.util:yaml-resource-bundle:1.1'
 
+	// spring security 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+
 	// postgresql
 	runtimeOnly 'org.postgresql:postgresql:42.5.4'
 
