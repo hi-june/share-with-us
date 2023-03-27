@@ -1,9 +1,9 @@
 package com.june.swu.global.exception;
 
-import com.june.swu.domain.token.exception.CAccessDeniedException;
-import com.june.swu.domain.token.exception.CAuthenticationEntryPointException;
-import com.june.swu.domain.token.exception.CExpiredAccessTokenException;
-import com.june.swu.domain.token.exception.CRefreshTokenException;
+import com.june.swu.domain.post.exception.CPostDeleteNotAllowed;
+import com.june.swu.domain.post.exception.CPostNotFoundException;
+import com.june.swu.domain.post.exception.CPostUpdateNotAllowed;
+import com.june.swu.domain.token.exception.*;
 import com.june.swu.domain.user.exception.CEmailLoginFailedException;
 import com.june.swu.domain.user.exception.CEmailSignUpFailedException;
 import com.june.swu.domain.user.exception.CUserNotFoundException;
@@ -122,6 +122,54 @@ public class GlobalExceptionHandler {
     protected CommonResult expiredAccessTokenException(HttpServletRequest request, CExpiredAccessTokenException e) {
         return responseService.getFailResult(
                 Integer.parseInt(getMessage("expiredAccessToken.code")), getMessage("expiredAccessToken.msg")
+        );
+    }
+
+    /**
+     * -1007
+     * access token 에러시 발생 시키는 에러
+     */
+    @ExceptionHandler(CAccessTokenException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    protected CommonResult accessTokenException(HttpServletRequest request, CAccessTokenException e) {
+        return responseService.getFailResult(
+                Integer.parseInt(getMessage("accessTokenInValid.code")), getMessage("accessTokenInValid.msg")
+        );
+    }
+
+    /**
+     * -1008
+     * 게시글을 찾을 수 없을 때 발생 시키는 에러
+     */
+    @ExceptionHandler(CPostNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected CommonResult postNotFoundException(HttpServletRequest request, CPostNotFoundException e) {
+        return responseService.getFailResult(
+                Integer.parseInt(getMessage("postNotFound.code")), getMessage("postNotFound.msg")
+        );
+    }
+
+    /**
+     * -1009
+     * 작성자 이외의 사람이 게시글 수정을 하려고 할 때 발생 시키는 에러
+     */
+    @ExceptionHandler(CPostUpdateNotAllowed.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    protected CommonResult postUpdateNotAllowedException(HttpServletRequest request, CPostUpdateNotAllowed e) {
+        return responseService.getFailResult(
+                Integer.parseInt(getMessage("postUpdateNotAllowed.code")), getMessage("postUpdateNotAllowed.msg")
+        );
+    }
+
+    /**
+     * -1010
+     * 작성자 이외의 사람이 게시글 삭제을 하려고 할 때 발생 시키는 에러
+     */
+    @ExceptionHandler(CPostDeleteNotAllowed.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    protected CommonResult postDeleteNotAllowedException(HttpServletRequest request, CPostDeleteNotAllowed e) {
+        return responseService.getFailResult(
+                Integer.parseInt(getMessage("postDeleteNotAllowed.code")), getMessage("postDeleteNotAllowed.msg")
         );
     }
 }
