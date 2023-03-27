@@ -39,14 +39,25 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false, length = 20)
     private String nickName;
 
+    @Column
+    private Boolean isActive;
+
     @ElementCollection(fetch = FetchType.EAGER) // User 객체의 권한이 담긴 컬렉션 객체를 User 조회시 EAGER로 즉시로딩하지 않는다면, Porxy객체가 담겨서 반환되므로 제대로 "ROLE_USER"를 확인할 수 없다.
     @Builder.Default
     private List<String> roles = new ArrayList<>(); // 권한은 회원당 여러개가 정의될 수 있으므로 컬렉션 타입으로 정의
+
+    @PrePersist
+    public void prePersist() {
+        this.isActive = this.isActive == null ? true : this.isActive;
+    }
 
     public void updateNickName(String nickName) {
         this.nickName = nickName;
     }
 
+    public void deleteUser() {
+        this.isActive = false;
+    }
 
     /**
      * UserDetails Overriding
