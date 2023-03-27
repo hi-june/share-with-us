@@ -22,3 +22,15 @@ refreshTokenInValid:
 expiredAccessToken:
   code: "-1006"
   msg: "AccessToken is Expired"
+accessTokenInValid:
+  code: "-1007"
+  msg: "AccessToken is not Valid"
+postNotFound:
+  code: "-1008"
+  msg: "This Post is not exist"
+postUpdateNotAllowed:
+  code: "-1009"
+  msg: "Only Writer can Update their Post"
+postDeleteNotAllowed:
+  code: "-1010"
+  msg: "Only Writer can Delete their Post"
