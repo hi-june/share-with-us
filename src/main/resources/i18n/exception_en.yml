@@ -34,3 +34,6 @@ postUpdateNotAllowed:
 postDeleteNotAllowed:
   code: "-1010"
   msg: "Only Writer can Delete their Post"
+locationNotFound:
+  code: "-1011"
+  msg: "This Location is not exist"

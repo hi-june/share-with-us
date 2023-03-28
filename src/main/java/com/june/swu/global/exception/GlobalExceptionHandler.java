@@ -1,5 +1,6 @@
 package com.june.swu.global.exception;
 
+import com.june.swu.domain.location.exception.CLocationNotFoundException;
 import com.june.swu.domain.post.exception.CPostDeleteNotAllowed;
 import com.june.swu.domain.post.exception.CPostNotFoundException;
 import com.june.swu.domain.post.exception.CPostUpdateNotAllowed;
@@ -170,6 +171,18 @@ public class GlobalExceptionHandler {
     protected CommonResult postDeleteNotAllowedException(HttpServletRequest request, CPostDeleteNotAllowed e) {
         return responseService.getFailResult(
                 Integer.parseInt(getMessage("postDeleteNotAllowed.code")), getMessage("postDeleteNotAllowed.msg")
+        );
+    }
+
+    /**
+     * -1011
+     * 작성자 이외의 사람이 게시글 삭제을 하려고 할 때 발생 시키는 에러
+     */
+    @ExceptionHandler(CLocationNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected CommonResult postDeleteNotAllowedException(HttpServletRequest request, CLocationNotFoundException e) {
+        return responseService.getFailResult(
+                Integer.parseInt(getMessage("locationNotFound.code")), getMessage("locationNotFound.msg")
         );
     }
 }
