@@ -42,7 +42,7 @@ public class Location extends BaseEntity {
         this.isActive = false;
     }
 
-    public void update(LocationRequestDto locationRequestDto) {
+    public void updateLocation(LocationRequestDto locationRequestDto) {
         this.latitude = locationRequestDto.getLatitude();
         this.longitude = locationRequestDto.getLongitude();
     }

@@ -1,5 +1,6 @@
 package com.june.swu.domain.post.dto.request;
 
+import com.june.swu.domain.location.dto.request.LocationRequestDto;
 import com.june.swu.domain.post.entity.FoodCategory;
 import lombok.Getter;
 
@@ -24,7 +25,7 @@ public class PostUpdateRequestDto {
     private Integer recruitment;
 
     @NotNull(message = "음식점의 위치가 필요합니다.")
-    private String restaurant;
+    private LocationRequestDto location;
 
     @NotNull(message = "음식 카테고리는 공백이 올 수 없습니다.")
     private FoodCategory foodCategory;
