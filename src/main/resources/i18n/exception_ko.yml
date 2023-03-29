@@ -34,6 +34,3 @@ postUpdateNotAllowed:
 postDeleteNotAllowed:
   code: "-1010"
   msg: "게시글 작성자만 게시글을 삭제할 수 있습니다."
-locationNotFound:
-  code: "-1010"
-  msg: "좌표 데이터가 없습니다."
