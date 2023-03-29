@@ -1,5 +1,6 @@
 package com.june.swu.domain.post.controller;
 
+import com.june.swu.domain.post.dto.request.PointRequestDto;
 import com.june.swu.domain.post.dto.request.PostCreateRequestDto;
 import com.june.swu.domain.post.dto.request.PostUpdateRequestDto;
 import com.june.swu.domain.post.dto.response.PostResponseDto;
@@ -101,6 +102,23 @@ public class PostController {
             @RequestParam(defaultValue = "") String keyword) {
         List<PostResponseDto> postDetailList =
                 postService.getPostListByKeywordWithPagination(page, size, keyword);
+        return responseService.getListResult(postDetailList);
+    }
+
+    @Parameter(
+            name = "X-AUTH-TOKEN",
+            description = "로그인 성공 후 AccessToken",
+            required = true,
+            schema = @Schema(type = "string"),
+            in = ParameterIn.HEADER)
+    @Operation(summary = "게시글 목록(인근 피드)", description = "사용자의 위치 기준으로 게시글 목록을 조회합니다.")
+    @PostMapping("/api/posts/point")
+    public ListResult<PostResponseDto> getPostListByPoint(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @Valid @RequestBody PointRequestDto pointRequestDto) {
+        List<PostResponseDto> postDetailList =
+                postService.getPostListByPointWithPagination(page, size, pointRequestDto);
         return responseService.getListResult(postDetailList);
     }
 }

@@ -1,11 +1,9 @@
 package com.june.swu.domain.post.service;
 
-import com.june.swu.domain.location.dto.response.LocationResponseDto;
-import com.june.swu.domain.location.entity.Location;
-import com.june.swu.domain.location.exception.CLocationNotFoundException;
-import com.june.swu.domain.location.repository.LocationRepository;
+import com.june.swu.domain.post.dto.request.PointRequestDto;
 import com.june.swu.domain.post.dto.request.PostCreateRequestDto;
 import com.june.swu.domain.post.dto.request.PostUpdateRequestDto;
+import com.june.swu.domain.post.dto.response.PointResponseDto;
 import com.june.swu.domain.post.dto.response.PostResponseDto;
 import com.june.swu.domain.post.entity.Post;
 import com.june.swu.domain.post.exception.CPostNotFoundException;
@@ -17,6 +15,10 @@ import com.june.swu.domain.user.entity.User;
 import com.june.swu.domain.user.exception.CUserNotFoundException;
 import com.june.swu.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
-    private final LocationRepository locationRepository;
+    private GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);  // 0(좌표 평면), 4326(위도-경도 좌표계)
 
     /**
      * 게시글 작성
@@ -52,11 +54,13 @@ public class PostService {
                 .findById(Long.parseLong(authentication.getName()))
                 .orElseThrow(CUserNotFoundException::new);
 
-        Post post = postCreateRequestDto.toEntity(user);
-        Post savedPost = postRepository.save(post);
+        Point point = getPoint(
+                postCreateRequestDto.getPointRequestDto().getLatitude(),    // 위도
+                postCreateRequestDto.getPointRequestDto().getLongitude()    // 경도
+        );
 
-        Location location = postCreateRequestDto.getLocation().toEntity(savedPost);
-        locationRepository.save(location);
+        Post post = postCreateRequestDto.toEntity(user, point);
+        Post savedPost = postRepository.save(post);
 
         return mapPostEntityToPostResponseDto(savedPost);
     }
@@ -91,13 +95,12 @@ public class PostService {
             throw new CPostUpdateNotAllowed();
         }
 
-        // 식당 좌표 찾기
-        Location location = locationRepository
-                        .findByPostId(postUpdateRequestDto.getPostId())
-                        .orElseThrow(CLocationNotFoundException::new);
+        Point point = getPoint(
+                postUpdateRequestDto.getLocation().getLatitude(),    // 위도
+                postUpdateRequestDto.getLocation().getLongitude()    // 경도
+        );
 
-        location.updateLocation(postUpdateRequestDto.getLocation());    // 식당 좌표 업데이트
-        post.updatePost(postUpdateRequestDto);  // post 업데이트
+        post.updatePost(postUpdateRequestDto, point);  // post 업데이트
 
         return mapPostEntityToPostResponseDto(post);
     }
@@ -107,7 +110,6 @@ public class PostService {
      *
      * soft delete를 진행합니다.
      * isActive 필드만 false로 설정합니다.
-     * post를 delete 시 그에 엮여있는 location도 같이 delete하도록 만듭니다.
      *
      * @param id
      * @param accessToken
@@ -131,15 +133,8 @@ public class PostService {
             throw new CPostUpdateNotAllowed();
         }
 
-        // 좌표 값도 삭제
-        Location location = locationRepository
-                        .findByPostId(post.getId())
-                        .orElseThrow(CLocationNotFoundException::new);
-
         post.deletePost();
-        location.deleteLocation();
         postRepository.save(post);
-        locationRepository.save(location);
     }
 
     /**
@@ -178,6 +173,30 @@ public class PostService {
     }
 
     /**
+     * 게시글 목록 조회(위치 기반)
+     *
+     * 사용자의 좌표를 받아 사용자와 일정 거리 이내에 있는 게시글들의 목록을 조회합니다.
+     *
+     * @param page
+     * @param size
+     * @param pointRequestDto
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public List<PostResponseDto> getPostListByPointWithPagination(int page, int size, PointRequestDto pointRequestDto) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        Point point = getPoint(
+                pointRequestDto.getLatitude(),    // 위도
+                pointRequestDto.getLongitude()    // 경도
+        );
+
+        return postRepository.findPostByDistance(pageRequest, point).stream()
+                .map(this::mapPostEntityToPostResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 인증정보 가져오기
      *
      * access token을 검증하고, claims에 포함된 정보를 가져옵니다.
@@ -204,7 +223,11 @@ public class PostService {
      * @return
      */
     private PostResponseDto mapPostEntityToPostResponseDto(Post post) {
-        LocationResponseDto location = getLocationResponseDto(post);
+        PointResponseDto pointResponseDto =
+                PointResponseDto.builder()
+                        .latitude(post.getRestaurantPoint().getX())
+                        .longitude(post.getRestaurantPoint().getY())
+                        .build();
 
         return PostResponseDto.builder()
                 .postId(post.getId())
@@ -212,25 +235,22 @@ public class PostService {
                 .title(post.getTitle())
                 .orderAt(post.getOrderAt())
                 .recruitment(post.getRecruitment())
-                .location(location)
+                .location(pointResponseDto)
                 .foodCategory(post.getFoodCategory())
                 .build();
     }
 
+
     /**
-     * post entity로부터 location 응답 모델을 반환합니다.
+     * 위도, 경도를 받아 Point 객체를 반환하는 메소드
      *
-     * @param post
+     * @param latitude
+     * @param longitude
      * @return
      */
-    private LocationResponseDto getLocationResponseDto(Post post) {
-        Location location = locationRepository
-                .findByPostId(post.getId())
-                .orElseThrow(CLocationNotFoundException::new);
+    private Point getPoint(double latitude, double longitude) {
+        Point point = geometryFactory.createPoint(new Coordinate(latitude, longitude));
 
-        return LocationResponseDto.builder()
-                .latitude(location.getLatitude())
-                .longitude(location.getLongitude())
-                .build();
+        return point;
     }
 }
