@@ -7,8 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
+import org.locationtech.jts.geom.Point;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -37,11 +36,11 @@ public class Post extends BaseEntity {
     private Integer recruitment;    // 모집 인원
 
     @Column(nullable = false)
-    private String restaurant;  // 식당 위치(추후에 좌표값으로 수정할 예정)
-
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private FoodCategory foodCategory;  // 음식 종류
+
+    @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
+    private Point restaurantPoint;  // 음식점(Point) 객체
 
     @Column
     private Boolean isActive;
@@ -51,12 +50,12 @@ public class Post extends BaseEntity {
         this.isActive = this.isActive == null ? true : this.isActive;
     }
 
-    public void updatePost(PostUpdateRequestDto postUpdateRequestDto) {
+    public void updatePost(PostUpdateRequestDto postUpdateRequestDto, Point point) {
         this.title = postUpdateRequestDto.getTitle();
         this.orderAt = postUpdateRequestDto.getOrderAt();
         this.recruitment = postUpdateRequestDto.getRecruitment();
-        this.recruitment = postUpdateRequestDto.getRecruitment();
         this.foodCategory = postUpdateRequestDto.getFoodCategory();
+        this.restaurantPoint = point;
     }
 
     public void deletePost() {

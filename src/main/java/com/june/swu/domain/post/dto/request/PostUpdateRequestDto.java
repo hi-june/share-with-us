@@ -24,7 +24,7 @@ public class PostUpdateRequestDto {
     private Integer recruitment;
 
     @NotNull(message = "음식점의 위치가 필요합니다.")
-    private String restaurant;
+    private PointRequestDto location;
 
     @NotNull(message = "음식 카테고리는 공백이 올 수 없습니다.")
     private FoodCategory foodCategory;
